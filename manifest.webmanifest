@@ -1,10 +1,19 @@
 {
-  "name": "GameZone Abou Youssef — Gérant",
-  "short_name": "GZ Gérant",
+  "name": "GameZone Abou Youssef — Patron",
+  "short_name": "Youssef Patron",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#140e20",
-  "theme_color": "#21152e",
-  "description": "GameZone Bah V62 — Gérant : comptes individuels, bonus fidélité, gymnastique, prises partagées et tarifs personnalisés."
+  "background_color": "#0a0f1e",
+  "theme_color": "#0a0f1e",
+  "description": "Commandes des sept postes GameZone Abou Youssef",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
 }

@@ -1,3 +1,4 @@
+/* GameZone Abou Youssef — outils indépendants, sans connexion CP1. */
 (function(root){
 'use strict';
 function clone(x){return JSON.parse(JSON.stringify(x));}

@@ -1,0 +1,1 @@
+Version Youssef 03 : voir INSTALLATION.txt à la racine du pack pour l’installation du relais V08, les règles Firebase et la page Patron.
