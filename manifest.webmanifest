@@ -1,19 +1,10 @@
 {
-  "name": "GameZone Abou Youssef — Patron",
+  "name": "GameZone Abou Youssef — PATRON",
   "short_name": "Youssef Patron",
-  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0a0f1e",
-  "theme_color": "#0a0f1e",
-  "description": "Commandes des sept postes GameZone Abou Youssef",
-  "icons": [
-    {
-      "src": "./icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
-  ]
+  "background_color": "#140e20",
+  "theme_color": "#21152e",
+  "description": "GameZone Abou Youssef · 7 postes · relais Firebase"
 }
