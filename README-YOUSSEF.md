@@ -1,39 +1,31 @@
-# Abou Youssef — sept prises, adaptation de la référence CP1
+# GameZone Abou Youssef 2.0 — sept prises
 
-Version préparée le 6 novembre 2026. Aucun site de production, aucune règle Firebase et aucune prise réelle n’ont été modifiés pendant la préparation.
+Préparation du 6 novembre 2026, distincte de CP1. Les sites de production et les règles Firebase ne sont pas encore basculés. Les prises réelles n’ont pas été commandées pendant la préparation.
 
-## Résultat
+## Livré et vérifié
+- Application Android dédiée `ci.gamezone.relais.youssef.v20`, version 2.0, compilation GitHub réussie le 6 novembre 2026. Elle fonctionne sans Termux ni Cloudflare.
+- Source Android : branche `youssef-relais-android-v20` du dépôt privé de relais, commit `b628a3b8ed21ad98acba8b8c337a2130e9e1bc08`.
+- Build vérifié : `42174638016`, artifact `GameZone-Relais-Youssef-2.0` (22,2 Mo).
+- Correspondance stricte des sept prises Youssef, refus des identités CP1/Imran.
+- Activation, pause, reprise, ajout/retrait, sauvegarde/restauration et crédit valable jusqu’à 08:00. Les minuteurs natifs continuent lors d’une perte de réseau; une perte de réseau seule ne prouve pas une coupure de courant.
+- Annulation Gérant avec motif, extinction confirmée, recette conservée. Annulation Patron et ses corrections comptables restent dans l’interface Patron. OFF TV reste réservé au Patron.
+- Annonces masculines MP3 intégrées dans les deux interfaces. Notifications locales après accord du navigateur, avec GameZone ouvert. Aucun serveur push site fermé n’est installé.
+- 47 tests Python du moteur et du pont Android; 18 tests des interfaces; 13 scénarios d’annulation/retrait/reprise; contrôles audio et notifications; 28 contrôles des règles compilées dans l’émulateur Firebase. Les refus permission_denied des scénarios négatifs sont attendus.
 
-Les pages Patron et Gérant utilisent exclusivement `gamzone-youssef-7e8ae` et `gz_YOUSSEF`. Les commandes utilisent `pilotage_v1/commands/1` à `7`. Les sept identifiants physiques sont vérifiés avant le démarrage du relais. Une configuration d’une autre salle est refusée avant toute connexion.
+## Installation coordonnée
+1. Arrêter le relais Youssef v09 et tout relais Termux Youssef; conserver l’ancienne application et les fichiers privés. Ne pas utiliser CP1 pour cet import.
+2. Installer le nouvel APK Youssef. Son identifiant Android est distinct: l’import est nécessaire. Ne pas désinstaller l’ancienne application avant les vérifications.
+3. Importer le ZIP privé Youssef déjà utilisé (`prive.json` et `echeances.json` à la racine). Le pack des sept prises a été validé avec le nouveau moteur. Aucun secret n’est intégré à cet ensemble de sources.
+4. La publication des nouvelles règles doit être autorisée: elles donnent au relais Youssef un accès à la salle nécessaire à la synchronisation et aux temps sauvegardés. Elles retirent au Gérant la lecture globale et limitent les recettes consultables au jour courant. Le candidat est `firebase/database.rules.DRAFT.json`; la sauvegarde réelle est `database.rules.BEFORE-20261106.json`.
+5. Publier les interfaces Patron/Gérant préparées dans leurs branches `test/youssef-7-prises-2026-11-06`, puis démarrer le nouvel APK et vérifier sept prises confirmées. Les tarifs et les noms Youssef existants sont conservés.
+6. Essais réels sur un poste libre: 2 minutes, pause/reprise, +temps, −temps, annulation avec chaque rôle, sauvegarde puis autre client et restauration, extinction à zéro, téléphone verrouillé, perte et retour du réseau. Vérifier recettes et droits Gérant du lendemain. Ces essais physiques restent à effectuer.
 
-Activation confirmée, Pause/Reprendre, ajout/retrait de temps, extinction réservée au Patron, annulation Patron et gestion des recettes/historiques/Gym/bonus proviennent des interfaces CP1 actuelles. Le Gérant ne dispose pas d’un OFF direct. Les tarifs existants et les noms affichés de Youssef ne sont pas remplacés par ceux de CP1. Les postes manquants 1 à 7 sont ajoutés après lecture conditionnelle; un doublon physique bloque l’initialisation. La journée de gestion reste à 08:00, comme la référence GitHub CP1 inspectée, et les crédits sauvegardés expirent à 08:00.
+## Reproduire les contrôles
+`python3 -m unittest discover -s tests -q`
+`node --test tests/interfaces.test.mjs`
+`node tests/feedback.cjs`
+`node tests/cancel.cjs gerant`
+`node tests/cancel.cjs patron`
+Pour les règles: Java 21, Node 24, `npm install`, puis `npm run test:rules`. Le projet demo-youssef est émulé; ces tests n’appellent pas Firebase de production.
 
-Le relais confirme DP1 et DP9, conserve les minuteurs natifs pendant une perte de connexion, ne rallume pas automatiquement une prise après une coupure, et refuse deux relais simultanés grâce à une présence conditionnelle Firebase. Ne pas lancer Termux et l’APK simultanément. L’APK Youssef existante n’est pas recompilée dans cette modification; le moteur livré est destiné à Termux.
-
-## Installation et vérifications encore nécessaires
-
-1. Connecter le projet Firebase Youssef pour récupérer et sauvegarder les règles en vigueur. Le fichier `database.rules.DRAFT.json` est un candidat de travail, pas une instruction de publication. Il a été vérifié comme JSON mais pas compilé/testé par l’émulateur Firebase. Il ne doit pas être déployé tel quel sans confrontation avec les règles réellement en vigueur et tests d’autorisations.
-2. Installer le moteur Termux sur le téléphone Youssef seulement, après arrêt du relais Youssef et de son superviseur. `installer-mise-a-jour.sh` vérifie les sept IDs, sauvegarde les fichiers existants localement avec permissions privées et refuse une installation par-dessus un moteur lancé. Les fichiers privés `devices.json`, `prive_firebase.json` et `etat_firebase.json` ne sont pas livrés, affichés ni téléversés.
-3. Exécuter `python relais_firebase.py verifier` sur le Wi-Fi des prises. Cette commande ne modifie aucun relais électrique. Vérifier les sept confirmations.
-4. Sur des postes libres, tester activation, pause, reprise, +temps, −temps, sauvegarde/restauration et fin native de deux minutes, puis écran verrouillé et coupure Internet après confirmation du minuteur natif. Vérifier les comptes Patron et Gérant et l’absence d’accès d’un compte CP1.
-5. Fusionner les deux demandes GitHub et publier les règles uniquement après accord du propriétaire et validation coordonnée. L’ordre de bascule doit éviter de laisser une page nouvelle face à un ancien relais incompatible.
-
-## Tests exécutés hors production
-
-45 tests Python et 18 tests JavaScript réussis, avec prises et Firebase simulés. Les tests couvrent la septième prise, le rejet d’identités étrangères, les commandes idempotentes, les droits Gérant, les minuteurs natifs, la sauvegarde du crédit, les fins de séance sans doublon et la conservation des recettes. Les scripts intégrés aux deux pages sont analysés pour vérifier leur syntaxe et leurs dépendances locales.
-
-Ces tests ne prouvent pas encore le fonctionnement des sept prises réelles ni la compatibilité des règles de production. Aucune activation réelle n’a été faite.
-
-## Son et notifications
-
-La sélection d’une voix masculine du téléphone est conservée. Les fichiers MP3 référencés par CP1 n’étaient pas présents dans les dépôts inspectés; les interfaces Youssef n’en dépendent plus et ne sélectionnent pas automatiquement une autre voix. Les notifications locales nécessitent l’autorisation du navigateur et GameZone ouvert. Les notifications site fermé nécessitent un serveur Web Push/FCM séparé, non présent dans cette référence et non configuré par cette modification.
-
-## Accès GitHub
-
-Le connecteur a refusé les écritures (403). L’enregistrement des branches de test est effectué par le navigateur autorisé. Aucune fusion et aucun déploiement en production ne font partie de cette étape.
-
-## Points de retour
-
-Patron Youssef avant modification : `3233a3cb7c9fc42f66ef27b42b808a8eda45f8de`.
-Gérant Youssef avant modification : `b54e65dcb2bd183ca60ee3448329eed8992e4a39`.
-Les dépôts CP1 ne sont pas modifiés.
+Le navigateur de travail a bloqué la récupération automatique de l’artifact Android. Le fichier compilé reste accessible dans la page GitHub du build. Cet ensemble contient les sources et non le binaire APK.
