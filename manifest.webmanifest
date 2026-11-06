@@ -1,10 +1,10 @@
 {
-  "name": "GameZone Abou Youssef — PATRON",
-  "short_name": "Youssef Patron",
+  "name": "GameZone YOUSSEF — PATRON",
+  "short_name": "YOUSSEF Patron",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#140e20",
   "theme_color": "#21152e",
-  "description": "GameZone Abou Youssef · 7 postes · relais Firebase"
+  "description": "GameZone YOUSSEF · 7 postes · relais Firebase"
 }

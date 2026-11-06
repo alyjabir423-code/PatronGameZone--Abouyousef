@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+<script>
+const GZ_STORAGE_PREFIX='gamezone:abou-youssef:patron:';
+function gzScopedStorage(raw){return {getItem:k=>raw.getItem(GZ_STORAGE_PREFIX+k),setItem:(k,v)=>raw.setItem(GZ_STORAGE_PREFIX+k,String(v)),removeItem:k=>raw.removeItem(GZ_STORAGE_PREFIX+k),clear:()=>{for(const k of Object.keys(raw))if(k.startsWith(GZ_STORAGE_PREFIX))raw.removeItem(k);}};}
+const localStorage=gzScopedStorage(window.localStorage),sessionStorage=gzScopedStorage(window.sessionStorage);
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0a0f1e">
@@ -360,7 +365,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
 #gz-notify-btn{border-color:#a67d3e!important;background:#3e311d!important;color:#fde047!important}
 
 </style>
-<script src="./youssef-relay.js?v=expiration-1.4"></script></head>
+<script src="./youssef-relay.js?v=youssef-feedback-2.0"></script></head>
 <body>
 
 <div id="fb-loading" style="position:fixed;inset:0;background:#0d0d1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:900;gap:10px">
@@ -465,7 +470,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
       <div style="font-size:10px;color:var(--muted);margin:-4px 2px 10px;line-height:1.45">⏻ <b style="color:#fca5a5">OFF TV</b> est réservé au Patron : il éteint la TV, met le temps à 00:00 et libère le poste sans retirer la recette.</div>
       <div class="sh"><h2>Postes</h2><span id="ctl-active-count">0 actif</span></div>
       <div class="control-grid" id="control-postes"></div>
-      <div class="sh" style="margin-top:18px"><h2>Activité</h2><span>07h00 → 06h59</span></div>
+      <div class="sh" style="margin-top:18px"><h2>Activité</h2><span>00h00 → 23h59</span></div>
       <div class="owner-jbox"><div class="owner-jhdr">Journal de session</div><div id="owner-journal-list"></div></div>
     </div>
 
@@ -494,7 +499,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
         <div style="font-size:14px;font-weight:700;color:#facc15">🔒 Correction de recette — Patron uniquement</div>
         <div style="font-size:11px;color:var(--sub);line-height:1.6;margin:5px 0 12px">Choisis le jour actuel ou une journée précédente enregistrée. Une correction ne crée ni faux client, ni nouvelle séance et ne touche pas aux prises. Motif obligatoire. Le journal privé est réservé au Patron.</div>
         <div id="patron-corr-live-total" style="color:#4ade80;font-size:12px;margin-bottom:10px">Recette du jour : chargement Firebase…</div>
-        <div class="ig"><label for="patron-corr-date">Journée à corriger (journée de gestion dès 07h)</label><input type="date" id="patron-corr-date" onchange="patronPopulateRevenuePostes()"></div>
+        <div class="ig"><label for="patron-corr-date">Journée à corriger (journée de gestion dès 08h)</label><input type="date" id="patron-corr-date" onchange="patronPopulateRevenuePostes()"></div>
         <div class="ig"><label for="patron-corr-poste">Poste concerné</label><select id="patron-corr-poste" style="width:100%;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9px"></select></div>
         <div class="ig"><label for="patron-corr-sens">Opération</label><select id="patron-corr-sens" style="width:100%;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9px"><option value="add">+ Ajouter une vente réelle oubliée</option><option value="subtract">− Retirer un montant saisi par erreur</option></select></div>
         <div class="ig"><label for="patron-corr-amount">Montant en F CFA (multiple de 100)</label><input id="patron-corr-amount" type="number" inputmode="numeric" min="100" max="100000" step="100" placeholder="Ex. 200" style="width:100%;padding:10px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:9px"/></div>
@@ -509,7 +514,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
 
     <!-- HISTORIQUE PROPRIÉTAIRE -->
     <div class="page" id="page-history">
-      <div class="sh"><h2>Historique</h2><span>07h00 → 06h59</span></div>
+      <div class="sh"><h2>Historique</h2><span>00h00 → 23h59</span></div>
       <div class="sh"><h2>Par jour</h2></div><div class="owner-report-card"><div class="owner-hist-list" id="oh-days"></div></div>
       <div class="sh"><h2>Par mois</h2></div><div class="owner-report-card"><div class="owner-hist-list" id="oh-months"></div></div>
     </div>
@@ -518,7 +523,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
     <div class="page" id="page-postes">
       <div class="sh"><h2>Postes & Prises Tuya</h2><span id="nb-postes">0</span></div>
       <div class="info-box">
-        🔐 Chaque poste peut être lié à une <b>Smart Plug Tuya</b>. Renseignez uniquement son <b>Device ID</b>. Les clés Tuya restent protégées dans relais OPPO Youssef.
+        🔐 Chaque poste peut être lié à une <b>Smart Plug Tuya</b>. Renseignez uniquement son <b>Device ID</b>. Les clés Tuya restent protégées dans relais OPPO YOUSSEF.
       </div>
       <div class="card" id="list-postes"></div>
       <button class="btn-add" onclick="openModalPoste()">+ Ajouter un poste</button>
@@ -556,10 +561,10 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
     <div class="page" id="page-params">
       <div class="sh"><h2>Paramètres</h2></div>
       <div class="info-box">
-        🔐 <b>Tuya sécurisé.</b> Le Client ID et le Client Secret sont conservés uniquement dans relais OPPO Youssef et ne sont plus enregistrés dans Firebase ni dans cette application.
+        🔐 <b>Tuya sécurisé.</b> Le Client ID et le Client Secret sont conservés uniquement dans relais OPPO YOUSSEF et ne sont plus enregistrés dans Firebase ni dans cette application.
       </div>
       <div class="info-box" style="margin-top:10px">
-        ✅ Firebase Authentication actif<br>✅ Worker Tuya sécurisé actif<br>✅ Salle : <b>CP1 Gaming (YOUSSEF)</b>
+        ✅ Firebase Authentication actif<br>✅ Relais local Firebase — 7 prises<br>✅ Salle : <b>Abou Youssef — 7 prises</b>
       </div>
     </div>
 
@@ -799,7 +804,7 @@ function gzIsFinancialCounterPath(path){
   return false;
 }
 
-function GZScopedRoomRef(rawRef){return YoussefRelay.roomRef(rawRef);}
+function GZScopedRoomRef(rawRef){return YOUSSEFRelay.roomRef(rawRef);}
 
 
 // V58/V35 : synchronisation de l'alarme OFF auprès du Worker le téléphone relais.
@@ -811,7 +816,7 @@ function gzCloudTimerSyncChanges(){return;}
 window.addEventListener('online',()=>gzCloudTimerSync(null));
 window.addEventListener('pageshow',()=>{if(gzCloudSyncAllDone)gzCloudTimerSync(null);});
 
-function connectTenant(tenantKey){
+function connectTenant(tenantKey){if(tenantKey!=='YOUSSEF')throw Error('Cette interface est réservée à la salle Youssef.');
   if(fbRoot){ try{fbRoot.off();}catch(e){} }
   DB._cache={};
   DB._ready=false;
@@ -990,7 +995,12 @@ function gzApplyAutomaticBonus(state,consoleType){
 }
 
 function blankRemoteActive(base){return Object.assign({},base||{},{actif:false,starting:false,startingUntil:0,cleanup:false,cleanupUntil:0,client:'',finTs:0,tempsTotal:0,dureeMin:0,paused:false,pauseRemainingSec:0,montantSession:0,montantJourSession:0,paiementsSession:{},sessionId:'',startedAt:0,bonus:false,bonusOnly:false,bonusSource:'',bonusDurationMin:0,bonusMinutesAdded:0,bonusGrantedAt:0,gzAutoBonusGrantedMin:0,gzAutoBonusConsole:'',updatedAt:Date.now()});}
-function businessDate(d=new Date()){return new Date(d.getTime()-(7*60*60*1000));}
+function businessDate(d=new Date()){
+  // Journée de gestion : 08:00 heure d'Abidjan (Africa/Abidjan, UTC+0).
+  // Construire une date civile locale à partir de l'heure UTC - 8 heures.
+  const t=new Date(d.getTime()-8*60*60*1000);
+  return new Date(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate(),12,0,0);
+}
 function businessDateKey(d=new Date()){return dateKeyISO(businessDate(d));}
 function remainingActive(a){if(!a||!a.actif)return 0;if(a.paused)return Math.max(0,Math.floor(Number(a.pauseRemainingSec)||0));return Math.max(0,Math.ceil(((Number(a.finTs)||0)-Date.now())/1000));}
 function fmtRest(sec){sec=Math.max(0,Math.floor(Number(sec)||0));const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return h>0?`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
@@ -1080,9 +1090,9 @@ function ownerPersistActivity(main,detail,amount,meta={}){
 
 
 
-// CP1 uniquement : correspondances Tuya vérifiées, jamais les prises ARABI.
-const GZ_CP1_TUYA_IDS=Object.freeze({});
-function gzCP1DeviceId(poste){try{return "relay:"+YoussefRelay.poste(poste);}catch(e){return "";}}
+// YOUSSEF uniquement : correspondances Tuya vérifiées, jamais les prises ARABI.
+const GZ_YOUSSEF_TUYA_IDS=Object.freeze({});
+function gzYOUSSEFDeviceId(poste){try{return "relay:"+YOUSSEFRelay.poste(poste);}catch(e){return "";}}
 let gzTuyaError='';
 function gzTuyaErrorText(){return gzTuyaError?' — '+gzTuyaError:'';}
 function gzTuyaReason(response,data,phase){
@@ -1092,7 +1102,7 @@ function gzTuyaReason(response,data,phase){
 
 // V21: une commande Tuya n'est validée que si switch_1 confirme le vrai état.
 async function ownerReadSwitch(poste){
-  const devid=gzCP1DeviceId(poste);if(!devid||!currentTenantKey)return null;
+  const devid=gzYOUSSEFDeviceId(poste);if(!devid||!currentTenantKey)return null;
   const user=firebase.auth().currentUser;if(!user)return null;
   const token=await user.getIdToken();
   const r=await fetch(TUYA_WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
@@ -1110,7 +1120,7 @@ async function ownerVerifySwitch(poste,expected){
 }
 
 async function ownerTuyaCommand(poste,turnOn){
-  const devid=gzCP1DeviceId(poste);gzTuyaError='';
+  const devid=gzYOUSSEFDeviceId(poste);gzTuyaError='';
   if(!devid||!currentTenantKey){gzTuyaError='ID de prise absent';return false;}
   if(turnOn===false && !(await gzSafeToSwitchOffShared(poste))){console.warn('OFF bloqué : autre session sur la même prise');return false;}
   try{
@@ -1163,7 +1173,7 @@ function renderOwnerDurations(containerId,post,kind){
 function ownerChooseDuration(containerId,kind,min,el){gzCustomReset(kind);document.querySelectorAll('#'+containerId+' .dctl-opt').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');if(kind==='start')ownerSelMin=min;else ownerPlusMin=min;gzChoosePreset(kind,ownerTarifs((DB.get('postes')||[])[ownerPosteIdx]),min);}
 
 function ownerPosteOrderValue(p,idx){const m=String((p&&p.num)||'').match(/\d+/);return m?Number(m[0]):1000+Number(idx||0);}
-function ownerOrderedPostesEntries(list){return (list||[]).map((p,i)=>({p,i})).sort((a,b)=>ownerPosteOrderValue(a.p,a.i)-ownerPosteOrderValue(b.p,b.i));}
+function ownerOrderedPostesEntries(list){return YOUSSEFRelay.entries(list);}
 
 
 // V42/V19 : vert > 10 min ; jaune > 5 à <= 10 min ; rouge <= 5 min jusqu'à 00:00.
@@ -1194,17 +1204,18 @@ function renderControl(){
     const total=Math.max(0,Number(a.tempsTotal)||0);const pct=a.actif&&total>0?Math.max(0,Math.min(100,(rest/total)*100)):0;
     // OFF TV est volontairement réservé à l'interface Patron.
     // Il termine la session à 00:00 SANS retirer le montant déjà encaissé.
+    const relayId=gzYOUSSEFDeviceId(p);
     const activeButtons=a.paused
       ? `<button class="ctl-btn ctl-resume" onclick="ownerResume(${i})">▶ REPRENDRE</button><button class="ctl-btn ctl-off" onclick="gzRetryPausedPower(${i})">${a.pausePowerOffConfirmed?'OFF CONFIRMÉ':'RÉESSAYER OFF'}</button><button class="ctl-btn ctl-plus" onclick="ownerOpenPlus(${i})">＋TPS</button><button class="ctl-btn ctl-pause" onclick="ownerOpenReduce(${i})">− TEMPS</button><button class="ctl-btn ctl-cancel" onclick="ownerOpenCancel(${i})">ANNULER</button><button class="ctl-btn ctl-off" onclick="ownerPowerOff(${i})">⏻ OFF TV</button>`
       : `<button class="ctl-btn ctl-pause" onclick="ownerPause(${i})">⏸ PAUSE</button><button class="ctl-btn ctl-plus" onclick="ownerOpenPlus(${i})">＋TPS</button><button class="ctl-btn ctl-pause" onclick="ownerOpenReduce(${i})">− TEMPS</button><button class="ctl-btn ctl-cancel" onclick="ownerOpenCancel(${i})">ANNULER</button><button class="ctl-btn ctl-off" onclick="ownerPowerOff(${i})">⏻ OFF TV</button>`;
     return `<div class="ctl-card ${cls}">
-      <div class="ctl-head"><div><div class="ctl-num">${esc(GameZoneManagement.displayName(p))}</div><div class="ctl-type">${esc(gzPosteTypeLabel(p))}</div></div><span class="badge ${a.actif?'b-on':'b-off'}">${badge}</span></div>
+      <div class="ctl-head"><div><div class="ctl-num">${esc(YOUSSEFRelay.displayName(p))}</div><div class="ctl-type">${esc(gzPosteTypeLabel(p))}</div></div><span class="badge ${a.actif?'b-on':'b-off'}">${badge}</span></div>
       <div class="ctl-timer-row"><div class="ctl-timer ${a.paused?'pause':(a.actif?'on':'free')}">${timer}</div>${a.actif?`<div class="ctl-money">${amount.toLocaleString('fr-FR')} F</div>`:''}</div>
       <div class="ctl-progress"><div class="ctl-progress-bar" style="width:${pct}%;background:${progressColor}"></div></div>
       <div class="ctl-client">${a.actif?esc(a.client||'Client'):'Disponible'}</div>
       ${ownerBonusNotice(a)}
-      <div style="font-size:10px;color:var(--muted);margin:3px 0 8px">${p.devid?'🔌 Prise liée':'⚠️ Sans prise'}</div>
-      <div class="ctl-actions">${expired?'<span style="font-size:11px;color:#fca5a5">⏳ Temps terminé — libération automatique</span>':!a.actif?`<button class="ctl-btn ctl-start" style="background:#7c3aed;border-color:#8b5cf6;color:#fff" onclick="ownerOpenStart(${i})">DÉMARRER</button>`:activeButtons}</div>
+      <div style="font-size:10px;color:var(--muted);margin:3px 0 8px">${relayId?'🔌 Prise liée':'⚠️ Prise à configurer'}</div>
+      <div class="ctl-actions">${!relayId?'':expired?'<span style="font-size:11px;color:#fca5a5">⏳ Temps terminé — libération automatique</span>':!a.actif?`<button class="ctl-btn ctl-start" style="background:#7c3aed;border-color:#8b5cf6;color:#fff" onclick="ownerOpenStart(${i})">DÉMARRER</button>`:activeButtons}</div>
     </div>`;
   }).join('')+ownerRenderBonusCard(postes);
   const c=document.getElementById('ctl-active-count');if(c)c.textContent=actifs+' actif'+(actifs>1?'s':'');
@@ -1349,7 +1360,7 @@ function patronCorrectionDaySnapshot(root){return GameZoneManagement.snapshot(ro
 async function patronCorrectRevenue(){
  if(patronCorrectionBusy)return;
  const uid=firebase.auth().currentUser&&firebase.auth().currentUser.uid;
- if(!loggedIn||!uid||!fbRoot||currentTenantKey!==ROOM_KEY)return patronCorrectionStatus('Connecte-toi en Patron à CP1');
+ if(!loggedIn||!uid||!fbRoot||currentTenantKey!==ROOM_KEY)return patronCorrectionStatus('Connecte-toi en Patron à YOUSSEF');
  const key=patronSelectedCorrectionDay(),poste=document.getElementById('patron-corr-poste').value;
  const how=document.getElementById('patron-corr-sens').value,amount=Number(document.getElementById('patron-corr-amount').value);
  const reason=String(document.getElementById('patron-corr-reason').value||'').trim();
@@ -1414,7 +1425,7 @@ function ownerRenderReport(){
 }
 async function ownerEnsureDailyRollover(){
   const key=businessDateKey(new Date());if(!ownerRuntimeDayKey){ownerRuntimeDayKey=key;return;}if(key===ownerRuntimeDayKey||ownerRolloverBusy||!fbRoot)return;const prevKey=ownerRuntimeDayKey;ownerRuntimeDayKey=key;ownerRolloverBusy=true;
-  try{const res=await fbRoot.transaction(root=>{root=root||{};root.rollovers=root.rollovers||{};if(root.rollovers[key])return root;root.daily=root.daily||{};const prev=root.sessions||{};if(!root.daily[prevKey]||money(prev.recettes)>=money(root.daily[prevKey]&&root.daily[prevKey].recettes))root.daily[prevKey]=deepClone(prev);const zero={recettes:0,count:0,date:today(),parPoste:{},sessionsParPoste:{},payStats:{}};root.sessions=zero;root.daily[key]=deepClone(zero);const arr=Array.isArray(root.active_postes)?root.active_postes.slice():[];arr.forEach((a,i)=>{if(a&&a.actif)arr[i]=Object.assign({},a,{montantJourSession:0,updatedAt:Date.now()});});root.active_postes=arr;if(root.active_by_poste&&typeof root.active_by_poste==='object'){const map=Object.assign({},root.active_by_poste);Object.keys(map).forEach(k=>{const a=map[k];if(a&&a.actif)map[k]=Object.assign({},a,{montantJourSession:0,updatedAt:Date.now()});});root.active_by_poste=map;}root.rollovers[key]={ts:Date.now(),previousKey:prevKey};return root;},undefined,false);if(res.snapshot&&typeof res.snapshot.val==='function')DB._cache=res.snapshot.val()||DB._cache;showToast('🌅 07h00 — nouvelle journée de gestion');}catch(e){console.log('Rollover patron',e);}finally{ownerRolloverBusy=false;}
+  try{const res=await fbRoot.transaction(root=>{root=root||{};root.rollovers=root.rollovers||{};if(root.rollovers[key])return root;root.daily=root.daily||{};const prev=root.sessions||{};if(!root.daily[prevKey]||money(prev.recettes)>=money(root.daily[prevKey]&&root.daily[prevKey].recettes))root.daily[prevKey]=deepClone(prev);const zero={recettes:0,count:0,date:today(),parPoste:{},sessionsParPoste:{},payStats:{}};root.sessions=zero;root.daily[key]=deepClone(zero);const arr=Array.isArray(root.active_postes)?root.active_postes.slice():[];arr.forEach((a,i)=>{if(a&&a.actif)arr[i]=Object.assign({},a,{montantJourSession:0,updatedAt:Date.now()});});root.active_postes=arr;if(root.active_by_poste&&typeof root.active_by_poste==='object'){const map=Object.assign({},root.active_by_poste);Object.keys(map).forEach(k=>{const a=map[k];if(a&&a.actif)map[k]=Object.assign({},a,{montantJourSession:0,updatedAt:Date.now()});});root.active_by_poste=map;}root.rollovers[key]={ts:Date.now(),previousKey:prevKey};return root;},undefined,false);if(res.snapshot&&typeof res.snapshot.val==='function')DB._cache=res.snapshot.val()||DB._cache;showToast('🌅 8 h — nouvelle journée de gestion');}catch(e){console.log('Rollover patron',e);}finally{ownerRolloverBusy=false;}
 }
 
 
@@ -1447,17 +1458,15 @@ async function ownerConfirmCancel(){
   const rest=remainingActive(local),totalSec=Math.max(0,Number(local.tempsTotal)||0),used=Math.max(0,totalSec-rest),detail=Object.assign({},local.paiementsSession||{});
   try{
     showToast('Annulation en cours : vérification de l’extinction…');
-    if(p.devid && !(await gzPauseViaServer(ownerCancelIdx)))return;
+    
     const confirmed=activeForPoste(p,ownerCancelIdx)||{};
-    if(p.devid && (!confirmed.paused || confirmed.pausePowerOffConfirmed!==true || confirmed.sessionId!==sid)){
-      showToast('Extinction non confirmée : annulation non finalisée.');return;
-    }
+    
     const res=await fbRoot.transaction(root=>{
       root=root||{};root.refunded_sessions=root.refunded_sessions||{};root.closed_sessions=root.closed_sessions||{};
       if(sid&&root.refunded_sessions[sid])return root;
       const remote=rootReadActive(root,Object.assign({},p,local),ownerCancelIdx)||{};
       if(!remote.actif||(sid&&remote.sessionId&&remote.sessionId!==sid))return;
-      if(p.devid && (!remote.paused || remote.pausePowerOffConfirmed!==true || Number(remote.updatedAt)!==Number(confirmed.updatedAt)))return;
+      
       const refund=Math.max(0,todayAmount);
       const ss=freshSessionSnapshotFromRoot(root);ss.recettes=Math.max(0,money(ss.recettes)-refund);ss.parPoste=ownerSubtractPosteBreakdown(ss.parPoste||{},p.num,refund);ss.payStats=ownerSubtractPaymentBreakdown(ss.payStats||{},detail,refund);
       if(startedKey===dayKey){ss.sessionsParPoste=Object.assign({},ss.sessionsParPoste||{});ss.sessionsParPoste[p.num]=Math.max(0,Math.floor(Number(ss.sessionsParPoste[p.num])||0)-1);if(ss.sessionsParPoste[p.num]===0)delete ss.sessionsParPoste[p.num];}
@@ -1502,7 +1511,7 @@ async function ownerConfirmStart(){
     },undefined,false);
     if(!reservation||!reservation.committed)return showToast('⚠️ Poste occupé, activation en cours ou prise partagée déjà utilisée par une autre console.');
     reserved=true;showToast('⏳ Vérification prise '+p.num);
-    powered=await YoussefRelay.ready(p);
+    powered=await YOUSSEFRelay.ready(p);
     if(!powered)throw new Error('Prise Tuya non confirmée ON : temps non activé'+gzTuyaErrorText());
     const tx=await fbRoot.transaction(root=>{
       root=root||{};const r=rootReadActive(root,p,idx)||{};
@@ -1820,8 +1829,8 @@ async function startSecurePatron(user){
     // Le rôle doit impérativement provenir de Realtime Database; aucun contournement des autorisations.
     let role;
     try {
-      if(user.uid!=="EH5EZIwCaiNwZgm0VYwVABI5IzV2")throw Error('Compte Patron Youssef requis');
-      await YoussefRelay.initialize();role='patron';
+      if(user.uid!=="EH5EZIwCaiNwZgm0VYwVABI5IzV2")throw Error('Compte Patron YOUSSEF requis');
+      await YOUSSEFRelay.initialize();role='patron';
     } catch(readError) {
       throw new Error('Lecture du rôle Firebase impossible ('+(readError.code||readError.message||'erreur réseau')+'). Chemin : '+rolePath+'. Ne modifie pas les règles sans vérifier.');
     }
@@ -2328,7 +2337,7 @@ async function delTarif(i){if(!confirm('Supprimer ce tarif ?'))return;try{await 
 // GÉRANTS — droits individuels Firebase, sans mot de passe en clair.
 // IMPORTANT : les règles de la base doivent être mises à jour AVANT d'utiliser ces fonctions.
 const GZ_STAFF_ROOM='gz_'+ROOM_KEY;
-const GZ_LEGACY_CP1={};
+const GZ_LEGACY_YOUSSEF={};
 let gzStaffDirectory={};
 let gzStaffDirectoryRef=null;
 let gzStaffBusy=false;
@@ -2502,7 +2511,7 @@ async function delGerant(i){
   }catch(e){showToast('⚠️ '+gzStaffError(e));}
   finally{gzStaffBusy=false;}
 }
-async function gzImportCp1(){showToast("Crée un compte propre à Youssef avec Ajouter un gérant.");}
+async function gzImportCp1(){showToast("Crée un compte propre à YOUSSEF avec Ajouter un gérant.");}
 
 // ══════════════════════════════════════
 // PARAMÈTRES — secrets Tuya conservés uniquement dans le téléphone relais
@@ -3015,28 +3024,14 @@ const postes=DB.get('postes')||[],p=postes[i],a=activeForPoste(p,i)||{};if(!p||!
     return current?await current.getIdToken():null;
   }
   async function enableRealNotifications(button){
-    if(!window.isSecureContext||!('Notification'in window)||!('serviceWorker'in navigator)||!('PushManager'in window))
-      throw new Error('Utilise le site HTTPS, et sur iPhone installe GameZone sur l’écran d’accueil.');
-    // iPhone Safari exige le clic utilisateur DIRECT pour la demande d'autorisation.
+    if(!window.isSecureContext||!('Notification'in window)||!('serviceWorker'in navigator))throw new Error('Ouvre GameZone en HTTPS dans Chrome. Sur iPhone, utilise son icône sur l’écran d’accueil.');
     const permission=await Notification.requestPermission();
-    if(permission!=='granted')throw new Error(permission==='denied'?'Notifications bloquées pour ce site. Ouvre GameZone directement dans Chrome, puis paramètres du site > Notifications > Autoriser. Sur iPhone, ouvre GameZone depuis son icône sur l’écran d’accueil.':'Autorisation non accordée. Ouvre GameZone dans ton navigateur habituel puis clique à nouveau la cloche et autorise les notifications.');
-    const token=await firebaseLoginToken();
-    if(!token)throw new Error('Connecte-toi à la salle GameZone avant d’activer les notifications.');
-    const keyReq=await fetch(WORKER_URL+'/?action=pushKey',{cache:'no-store'});
-    const keyData=await keyReq.json();
-    if(!keyData.success||!keyData.key)throw new Error('Le serveur de notifications n’est pas encore configuré.');
-    let readyTimer,reg;
-    try{reg=await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>{readyTimer=setTimeout(()=>reject(new Error('Service de notifications non prêt. Recharge le site dans ton navigateur habituel puis réessaie.')),12000);})]);}finally{clearTimeout(readyTimer);}
-    let sub=await reg.pushManager.getSubscription();
-    if(sub&&sub.options.applicationServerKey){const old=new Uint8Array(sub.options.applicationServerKey),current=keyBytes(keyData.key);if(old.length!==current.length||old.some((b,i)=>b!==current[i])){await sub.unsubscribe();sub=null;}}
-    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:keyBytes(keyData.key)});
-    const resp=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({tenantKey:'YOUSSEF',action:'subscribePush',subscription:sub.toJSON(),url:location.href.split(/[?#]/)[0],role:ROLE})});
-    const answer=await resp.json().catch(()=>({}));
-    if(!resp.ok||!answer.success||!answer.registered)throw new Error(answer.error||'Abonnement impossible : vérifier le Worker.');
-    await reg.showNotification('🎮 GameZone Abou Youssef — alertes activées',{body:'Ce téléphone recevra les alertes à 5 minutes et à la fin du temps, même en arrière-plan si le système le permet.',tag:'gz-push-ready'});
-    button.title='Notifications distantes activées';
-    button.textContent='🔔✓';
+    if(permission!=='granted')throw new Error('Notifications non autorisées. Vérifie les autorisations de ce site dans les réglages du navigateur.');
+    const reg=await navigator.serviceWorker.register('./sw.js');
+    await Promise.race([navigator.serviceWorker.ready,new Promise((_,reject)=>setTimeout(()=>reject(Error('Service de notifications non prêt. Recharge la page.')),10000))]);
+    await reg.showNotification('GameZone Abou Youssef — notifications autorisées',{body:'Alertes à 5 minutes et à la fin pendant que GameZone reste ouvert. Les alertes site fermé nécessitent un serveur push.',tag:'youssef-local-ready'});
+    button.title='Notifications locales autorisées — garder GameZone ouvert';button.textContent='🔔✓';
+    window.GZFeedback?.notificationStatus();
   }
   function bind(){
     const button=document.getElementById('gz-notify-btn');
@@ -3203,19 +3198,31 @@ async function ownerConfirmReduce(){
 })();
 </script>
 
-<script>YoussefRelay.install({uid:()=>firebase.auth().currentUser?.uid,token:async()=>firebase.auth().currentUser?.getIdToken()});
+<script>YOUSSEFRelay.install({uid:()=>firebase.auth().currentUser?.uid,token:async force=>firebase.auth().currentUser?.getIdToken(!!force)});
 
-ownerPowerOff=async function(i){const p=(DB.get('postes')||[])[i],a=p&&activeForPoste(p,i);if(!a?.actif)return;if(!confirm('OFF TV : terminer la séance de '+p.num+' ? La recette sera conservée.'))return;try{const tx=await fbRoot.transaction(r=>{const st=rootReadActive(r,p,i);if(!st?.actif||st.sessionId!==a.sessionId)return;rootWriteActive(r,p,i,blankRemoteActive(st));r.closed_sessions=r.closed_sessions||{};r.closed_sessions[a.sessionId]={status:'terminee',ts:Date.now(),poste:p.num};return r;});if(tx.committed){DB._cache=tx.snapshot.val();ownerPersistActivity(p.num+' — OFF TV','Temps terminé, recette conservée','',{poste:p.num,sessionId:a.sessionId,typeActivite:'terminee'});renderControl();}}catch(e){showToast(e.message);}};
-const originalSavePosteY=savePoste;savePoste=async function(){const num=document.getElementById('p-num')?.value;try{if(num)YoussefRelay.poste({num});return await originalSavePosteY();}catch(e){showToast(e.message);}};
+ownerPowerOff=async function(i){const p=(DB.get('postes')||[])[i],a=p&&activeForPoste(p,i);if(!a?.actif)return;const entered=prompt('Motif obligatoire pour OFF TV (recette conservée) :');if(entered===null)return;const reason=entered.trim();if(!reason||reason.length>500){showToast('Motif obligatoire : 1 à 500 caractères.');return;}if(!confirm('OFF TV : terminer la séance de '+p.num+' ? La recette sera conservée.'))return;try{const tx=await fbRoot.transaction(r=>{const st=rootReadActive(r,p,i);if(!st?.actif||st.sessionId!==a.sessionId)return;rootWriteActive(r,p,i,blankRemoteActive(st));r.closed_sessions=r.closed_sessions||{};r.closed_sessions[a.sessionId]={status:'terminee',ts:Date.now(),poste:p.num};return r;});if(tx.committed){DB._cache=tx.snapshot.val();ownerPersistActivity(p.num+' — OFF TV','Temps terminé, recette conservée · Motif : '+reason,'',{poste:p.num,sessionId:a.sessionId,typeActivite:'terminee',motif:reason});renderControl();}}catch(e){showToast(e.message);}};
+const originalSavePosteY=savePoste;savePoste=async function(){const num=document.getElementById('p-num')?.value;try{if(num)YOUSSEFRelay.poste({num});return await originalSavePosteY();}catch(e){showToast(e.message);}};
 
- document.title='GameZone Abou Youssef — Patron';const y=document.getElementById('gz-build-version');if(y)y.textContent='YOUSSEF COMPLET 01 · Relais Firebase local';</script><script>
+ document.title='GameZone Abou Youssef — Patron';const y=document.getElementById('gz-build-version');if(y)y.textContent='YOUSSEF · 7 prises · Relais Firebase 2.0';</script><script>
 // Les contrôles physiques précèdent la validation de la vente dans transaction().
-ownerTuyaCommand=async function(p,on){try{return on?await YoussefRelay.ready(p):await YoussefRelay.safeOff(p);}catch(e){gzTuyaError=e.message;return false;}};
-ownerReliableOff=async function(p){try{return await YoussefRelay.safeOff(p);}catch(e){gzTuyaError=e.message;return false;}};
+ownerTuyaCommand=async function(p,on){try{return on?await YOUSSEFRelay.ready(p):await YOUSSEFRelay.safeOff(p);}catch(e){gzTuyaError=e.message;return false;}};
+ownerReliableOff=async function(p){try{return await YOUSSEFRelay.safeOff(p);}catch(e){gzTuyaError=e.message;return false;}};
 </script><script>const originalOpenPosteY=openModalPoste;openModalPoste=function(i=-1){originalOpenPosteY(i);document.getElementById('p-devid').readOnly=true;};
-savePoste=async function(){const n=document.getElementById('p-num').value.trim();if(!/^Poste [1-7]$/.test(n))return showToast('Identifiant : Poste 1 à Poste 7. Utilise Nom affiché pour renommer.');document.getElementById('p-devid').value='relay:'+YoussefRelay.poste({num:n});return originalSavePosteY();};
-testerPrise=async function(){const out=document.getElementById('test-result');out.style.display='block';try{await YoussefRelay.ready({num:document.getElementById('p-num').value});out.textContent='Relais et prise disponibles.';out.className='test-result tr-ok';}catch(e){out.textContent=e.message;out.className='test-result tr-err';}};
-setInterval(()=>{if(typeof DB==='undefined'||!DB._cache)return;const incidents=DB._cache.operation_incidents||{};let box=document.getElementById('youssef-incidents');if(Object.keys(incidents).length){if(!box){box=document.createElement('div');box.id='youssef-incidents';box.style.cssText='padding:10px;background:#652438;color:#fff;font-size:12px';document.getElementById('gz-build-version')?.after(box);}const ids=Object.keys(incidents).sort().join('|');if(box.dataset.ids!==ids){box.dataset.ids=ids;box.replaceChildren();const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='⚠ '+Object.keys(incidents).length+' opération(s) à contrôler — détails';details.append(summary);const info=document.createElement('p');info.textContent='Une ancienne commande n’a pas reçu de confirmation. Vérifiez le poste et la recette avant de répéter une vente. La fin automatique du temps libère le poste.';details.append(info);box.append(details);}}},3000);
-</script></body>
+savePoste=async function(){const n=document.getElementById('p-num').value.trim();try{YOUSSEFRelay.poste({num:n});}catch(e){return showToast(e.message);}document.getElementById('p-devid').value='relay:'+YOUSSEFRelay.poste({num:n});return originalSavePosteY();};
+testerPrise=async function(){const out=document.getElementById('test-result');out.style.display='block';try{await YOUSSEFRelay.ready({num:document.getElementById('p-num').value});out.textContent='Relais et prise disponibles.';out.className='test-result tr-ok';}catch(e){out.textContent=e.message;out.className='test-result tr-err';}};
+
+</script><script>
+const rootReadAutoY=rootReadActive;rootReadActive=function(root,p,i){const s=rootReadAutoY(root,p,i);return YOUSSEFRelay.applyPause(s,root?.auto_pauses?.[remotePostKey(p?.num)]);};
+const activeAutoY=activeForPoste;activeForPoste=function(p,i){return YOUSSEFRelay.applyPause(activeAutoY(p,i),DB._cache.auto_pauses?.[remotePostKey(p?.num)]);};
+</script><script src="./actions-v03.js?v=youssef-boutons-1.6"></script><script src="pending-pause.js"></script>
+<script src="./youssef-v12-ui.js?v=youssef-sync-1.8"></script>
+<script src="./youssef-feedback.js?v=2.0"></script>
+</body>
 </html>
+
+
+
+
+
+
 

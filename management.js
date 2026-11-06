@@ -44,3 +44,4 @@ function updatePostes(room,index,values){
 }
 root.GameZoneManagement={snapshot,applyCorrection,displayName,updatePostes};
 })(typeof globalThis!=='undefined'?globalThis:this);
+
