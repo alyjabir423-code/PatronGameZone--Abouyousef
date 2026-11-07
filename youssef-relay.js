@@ -22,7 +22,7 @@ async function refreshPhysical(){if(activeTransactions)return;try{await states()
 function applyPause(state,marker){if(marker?.reason==='prise_injoignable')return state;if(!state?.actif||state.paused||!marker||marker.sessionId!==state.sessionId)return state;if(state.nativeCommandId&&marker.nativeId!==state.nativeCommandId)return state;if(Number(marker.at)<Number(state.startedAt||0))return state;const remaining=Number(marker.remaining);if(!Number.isInteger(remaining)||remaining<0||remaining>86400)return state;return {...state,paused:true,pauseRemainingSec:remaining,finTs:0,pausePowerOffConfirmed:marker.powerConfirmed===true,pauseReason:marker.reason,autoPausedAt:marker.at};}
 function applyAuto(root){if(!root||typeof root!=='object')return root;const next=clone(root);for(const [key,state]of Object.entries(next.active_by_poste||{})){next.active_by_poste[key]=applyPause(state,next.auto_pauses?.[key]);const st=next.active_by_poste[key],receipt=next.pause_results?.[key];if(st.pendingPauseId){st.pausePowerOffConfirmed=receipt?.id===st.pendingPauseId&&receipt?.sessionId===st.sessionId&&receipt?.powerConfirmed===true;st.pausePending=!st.pausePowerOffConfirmed;}}return next;}
 function remaining(s){return !s?.actif?0:s.paused?Math.max(0,Math.floor(s.pauseRemainingSec||0)):Math.max(0,Math.ceil(((s.finTs||0)-Date.now())/1000));}
-async function ready(p){const n=poste(p);const [h,row]=await Promise.all([request('pilotage_v1/heartbeat'),request('pilotage_v1/states/'+n)]);if(h.date)offset=new Date(h.date).getTime()-Date.now();const st=row.data||{};if(!h.data?.capabilities?.includes('command-receipts-v2'))throw Error('Mise à jour du relais YOUSSEF requise.');if(!h.data?.at||now()-h.data.at>45000)throw Error('Relais OPPO non disponible');if(!st.online||now()-st.seenAt>30000)throw Error('Prise du poste '+n+' non disponible');return st;}
+async function ready(p){const n=poste(p);const [h,row]=await Promise.all([request('pilotage_v1/heartbeat'),request('pilotage_v1/states/'+n)]);if(h.date)offset=new Date(h.date).getTime()-Date.now();const st=row.data||{};if(!h.data?.capabilities?.includes('command-receipts-v2'))throw Error('Mise à jour du relais YOUSSEF requise.');if(!h.data?.at||now()-h.data.at>45000)throw Error('Relais OPPO non disponible');if(!st.online||now()-st.seenAt>30000)throw Error('Poste '+n+' : communication locale non confirmée. Sur le téléphone relais, vérifier les prises et le Wi-Fi de la salle, puis contrôler IP, clé locale et protocole. Aucune activation envoyée.');return st;}
 async function command(p,action,seconds=0,operationId){
  const n=poste(p);if(pending.has(n))throw Error('Une commande est déjà en cours pour ce poste.');
  pending.set(n,{reserving:true});
@@ -33,7 +33,6 @@ async function command(p,action,seconds=0,operationId){
   pending.set(n,c);
   if(before.result?.id===c.id){if(!before.result.ok)throw Error(before.result.message||'Commande refusée');return before;}
   const old=waiting.data;if(old?.expiresAt>now()&&before?.result?.id!==old.id)throw Error('Une autre commande attend confirmation.');
-  w.GZActionAudio?.play(action);
   await request('pilotage_v1/commands/'+n,'PUT',c);
   for(let i=0;i<100;i++){
    const s=(await request('pilotage_v1/states/'+n)).data;
@@ -45,7 +44,7 @@ async function command(p,action,seconds=0,operationId){
      if(previousCredit<=seconds&&s.power!==false)throw Error('Extinction après réduction à zéro non confirmée.');
      if(Number(s.remaining)>ceiling||(s.mode==='actif'&&Number(s.nativeSeconds)>ceiling))throw Error('Réduction non confirmée par la prise : vérifier son minuteur.');
     }
-    w.GZActionAudio?.play('confirmed');return s;
+    return s;
    }
    if(now()>c.expiresAt+1500)break;await sleep(200);
   }
