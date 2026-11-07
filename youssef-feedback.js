@@ -1,17 +1,37 @@
 /* YOUSSEF: spoken requests, confirmed receipts, local notifications, incident history. */
 (function(w){'use strict';
 const sounds=['start','pause','resume','add','subtract','save','restore','off','confirmed','error','five','finish','test'];
-const players=new Map();let playing=null;
+const players=new Map();let playing=null,playSequence=0,voice=null;
 const enabled=()=>localStorage.getItem('youssef-audio-enabled')!=='0';
+const phrases={start:'Activation demandée',pause:'Pause demandée',resume:'Reprise demandée',add:'Ajout de temps demandé',subtract:'Retrait de temps demandé',save:'Sauvegarde demandée',restore:'Restauration demandée',off:'Arrêt demandé',confirmed:'Choix sélectionné',error:'Opération non confirmée',five:'Il reste cinq minutes',finish:'Temps terminé',test:'Les annonces vocales sont activées'};
+function audioStatus(text){const e=document.getElementById('youssef-audio-status');if(e)e.textContent=text;}
+function fallbackVoice(name,sequence){
+ if(sequence!==playSequence||!enabled())return;
+ if(!w.speechSynthesis||!w.SpeechSynthesisUtterance){audioStatus('Son indisponible. Ouvre GameZone dans Chrome ou Safari et réessaie « Tester et activer ».');return;}
+ try{w.speechSynthesis.cancel();voice=new w.SpeechSynthesisUtterance(phrases[name]||phrases.confirmed);voice.lang='fr-FR';const voices=w.speechSynthesis.getVoices().filter(v=>/^fr/i.test(v.lang));voice.voice=voices.find(v=>/henri|thomas|paul|homme|male/i.test(v.name))||voices[0]||null;
+ voice.onstart=()=>{if(sequence===playSequence)audioStatus('Voix du téléphone en cours de lecture.');};
+ voice.onerror=()=>{if(sequence===playSequence)audioStatus('Le téléphone bloque le son. Vérifie le volume multimédia puis réessaie « Tester et activer ».');};
+ w.speechSynthesis.speak(voice);
+ }catch(_){audioStatus('Son indisponible : réessaie « Tester et activer ».');}
+}
 function play(name){if(!enabled()||!sounds.includes(name))return false;
- try{if(playing){playing.pause();playing.currentTime=0;}let a=players.get('voice');if(!a){a=new Audio();a.preload='auto';players.set('voice',a);}const src='./youssef-audio-'+name+'.mp3';if(a.getAttribute('src')!==src)a.src=src;a.currentTime=0;a.volume=1;playing=a;const result=a.play();result?.catch(()=>{const e=document.getElementById('youssef-audio-status');if(e)e.textContent='Le navigateur bloque le son : appuie sur « Tester et activer ». ';});return true;}catch(_){return false;}}
+ const sequence=++playSequence;
+ try{w.speechSynthesis?.cancel();if(playing){playing.pause();playing.currentTime=0;}
+ let a=players.get('voice');if(!a){a=new Audio();a.preload='auto';players.set('voice',a);}
+ const src='./youssef-audio-'+name+'.mp3';if(a.getAttribute('src')!==src)a.src=src;a.currentTime=0;a.volume=1;playing=a;
+ audioStatus('Lecture en cours…');
+ const result=a.play();
+ result?.then(()=>{if(sequence===playSequence)audioStatus('Voix intégrée en cours de lecture.');}).catch(()=>fallbackVoice(name,sequence));
+ return true;
+ }catch(_){fallbackVoice(name,sequence);return false;}
+}
 function classify(text){const t=String(text||'').toLowerCase();if(/refus|erreur|impossible/.test(t))return 'error';if(/cinq|5 minutes/.test(t))return 'five';if(/terminé|terminée|fin du temps/.test(t))return 'finish';if(/pause/.test(t))return 'pause';if(/repris|reprise|reprendre/.test(t))return 'resume';if(/diminu|retir|rédu|[−–-]\s*temps/.test(t))return 'subtract';if(/sauvegard/.test(t))return 'save';if(/restaur/.test(t))return 'restore';if(/ajout|supplément|prolong|\+tps|\+ tps/.test(t))return 'add';if(/annul|étein|extinc/.test(t))return 'off';if(/activ|démarr/.test(t))return 'start';return 'confirmed';}
 // Button audio is emitted by the click listener only; async callbacks must not repeat it.
 function speak(){return false;}
 w.GZActionAudio={play,classify};
 function panel(){document.getElementById('gz-male-voice-panel')?.remove();document.getElementById('youssef-audio-panel')?.remove();const overlay=document.createElement('div');overlay.id='youssef-audio-panel';overlay.style.cssText='position:fixed;inset:0;background:#000b;z-index:1000200;display:grid;place-items:center;padding:18px';
  const box=document.createElement('section');box.style.cssText='max-width:450px;background:#151a2a;color:white;border:1px solid #64748b;border-radius:16px;padding:20px;font:16px system-ui';box.innerHTML='<h2>🎙️ Voix masculine intégrée</h2><p>Les annonces des touches utilisent des fichiers audio intégrés, même si le téléphone ne propose aucune voix française.</p><p id="youssef-audio-status" role="status"></p><button type="button" data-audio="test">▶ Tester et activer</button> <button type="button" data-audio="mute">Couper les annonces</button><p><button type="button" data-audio="close">Fermer</button></p><small>Le son confirme la demande. La réussite reste soumise à la réponse de la prise.</small>';
- box.querySelectorAll('button').forEach(b=>{b.style.cssText='padding:12px;border:1px solid #64748b;border-radius:8px;color:white;background:#253249;margin:4px';b.onclick=()=>{if(b.dataset.audio==='test'){localStorage.setItem('youssef-audio-enabled','1');play('test');box.querySelector('#youssef-audio-status').textContent='Annonces activées sur cet appareil.';}else if(b.dataset.audio==='mute'){localStorage.setItem('youssef-audio-enabled','0');playing?.pause();box.querySelector('#youssef-audio-status').textContent='Annonces désactivées sur cet appareil.';}else overlay.remove();};});overlay.append(box);document.body.append(overlay);}
+ box.querySelectorAll('button').forEach(b=>{b.style.cssText='padding:12px;border:1px solid #64748b;border-radius:8px;color:white;background:#253249;margin:4px';b.onclick=()=>{if(b.dataset.audio==='test'){localStorage.setItem('youssef-audio-enabled','1');play('test');}else if(b.dataset.audio==='mute'){localStorage.setItem('youssef-audio-enabled','0');++playSequence;playing?.pause();w.speechSynthesis?.cancel();box.querySelector('#youssef-audio-status').textContent='Annonces désactivées sur cet appareil.';}else overlay.remove();};});overlay.append(box);document.body.append(overlay);}
 function notificationStatus(){const b=document.getElementById('gz-notify-btn');if(!b||!('Notification'in w))return;const granted=Notification.permission==='granted';b.textContent=granted?'🔔✓':'🔔';b.title=granted?'Notifications locales autorisées — garder GameZone ouvert':'Activer les notifications sur ce téléphone';}
 async function enableNotifications(){
  if(!('Notification'in w)||!('serviceWorker'in navigator))return alert('Notifications non prises en charge sur ce navigateur.');
@@ -48,4 +68,5 @@ function checkAlerts(){if(typeof DB==='undefined'||!DB._cache)return;const root=
 function incidents(){if(typeof DB==='undefined'||!DB._cache)return;const items=Object.entries(DB._cache.operation_incidents||{}).sort((a,b)=>Number(b[1]?.at)-Number(a[1]?.at));let box=document.getElementById('youssef-incidents');if(!items.length){box?.remove();return;}if(!box){box=document.createElement('div');box.id='youssef-incidents';document.getElementById('gz-build-version')?.after(box);}const recent=items.filter(([,a])=>Date.now()-Number(a.at||0)<300000),sig=JSON.stringify([items,recent.length]);if(box.dataset.signature===sig)return;box.dataset.signature=sig;box.style.cssText='padding:10px;color:#fff;font:13px system-ui;background:'+(recent.length?'#652438':'#30273b');box.replaceChildren();const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=recent.length?'⚠ '+recent.length+' commande(s) récente(s) à contrôler':'🗂 '+items.length+' ancien(s) signalement(s) — historique à consulter';details.append(summary);const info=document.createElement('p');info.textContent='Ces signalements sont conservés. Vérifie le poste et la recette avant de répéter une vente. Une confirmation ultérieure de la prise ne vérifie pas la recette.';details.append(info);for(const [id,a]of items){const row=document.createElement('p');row.textContent=new Date(Number(a.at)||0).toLocaleString('fr-FR')+' · Poste(s) '+(a.postes||[]).join(', ')+' · '+(a.message||'Commande non confirmée');details.append(row);}box.append(details);}
 if(document.readyState==='loading')w.addEventListener('load',setup);else setup();setInterval(()=>{checkAlerts();incidents();},1000);
 })(window);
+
 
