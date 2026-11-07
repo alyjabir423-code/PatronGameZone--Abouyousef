@@ -1275,7 +1275,7 @@ async function ownerConfirmBonus(){
     if(startedNew){ownerAnnounceStartOnce(sid,p.num,min,true);showToast('🎁 '+p.num+' bonus '+min+' min · TV confirmée');}
     else{ownerSpeak('Bonus client fidèle. '+ownerSpeechPosteName(p.num)+' reçoit '+min+' minutes supplémentaires.');showToast('🎁 +'+min+' min offertes sur '+p.num+' · recette inchangée');}
     renderControl();renderHome();ownerRenderJournal();
-  }catch(e){console.log('Bonus Patron:',e);showToast('⚠️ Bonus impossible — vérifiez Internet');}
+  }catch(e){console.log('Bonus Patron:',e);showToast('⚠️ Bonus non activé : '+(e?.message||'réponse du relais indisponible'));}
 }
 
 function ownerCurrentSessionSnapshot(){
@@ -3205,10 +3205,11 @@ const rootReadAutoY=rootReadActive;rootReadActive=function(root,p,i){const s=roo
 const activeAutoY=activeForPoste;activeForPoste=function(p,i){return YOUSSEFRelay.applyPause(activeAutoY(p,i),DB._cache.auto_pauses?.[remotePostKey(p?.num)]);};
 </script><script src="./actions-v03.js?v=youssef-boutons-1.6"></script><script src="pending-pause.js"></script>
 <script src="./youssef-v12-ui.js?v=youssef-sync-1.8"></script>
-<script src="./youssef-feedback.js?v=20261106-audio1?v=2.0"></script>
+<script src="./youssef-feedback.js?v=20261107-voice24"></script>
 <script src="./click-feedback.js?v=20261107-1"></script>
 </body>
 </html>
+
 
 
 
