@@ -1501,21 +1501,10 @@ async function ownerConfirmStart(){
     if(!fbRoot)return showToast('⚠️ Firebase indisponible');
     if(!String(p.devid||'').trim())return showToast('⚠️ '+p.num+' : prise Tuya non configurée. Aucun temps ni recette démarrés.');
     sid=p.num+'-'+Date.now()+'-pat-'+Math.random().toString(36).slice(2,6);
-    const reservation=await fbRoot.transaction(root=>{
-      root=root||{};const r=rootReadActive(root,p,idx)||{};
-      if(gzSharedPlugOccupant(root,p,idx))return undefined;
-      if(Number(r.pausePendingUntil)>Date.now()||r.actif||(r.starting&&Date.now()<Number(r.startingUntil||0))||(r.cleanup&&Date.now()<Number(r.cleanupUntil||0)))return undefined;
-      rootWriteActive(root,p,idx,{actif:false,starting:true,startingUntil:Date.now()+45000,
-        client:nom,sessionId:sid,finTs:0,paused:false,montantSession:0,updatedAt:Date.now()});
-      return root;
-    },undefined,false);
-    if(!reservation||!reservation.committed)return showToast('⚠️ Poste occupé, activation en cours ou prise partagée déjà utilisée par une autre console.');
-    reserved=true;showToast('⏳ Vérification prise '+p.num);
-    powered=await YOUSSEFRelay.ready(p);
-    if(!powered)throw new Error('Prise Tuya non confirmée ON : temps non activé'+gzTuyaErrorText());
+    showToast('⏳ Activation en cours — confirmation de la prise…');
     const tx=await fbRoot.transaction(root=>{
       root=root||{};const r=rootReadActive(root,p,idx)||{};
-      if(!r.starting||r.sessionId!==sid||r.actif||gzSharedPlugOccupant(root,p,idx))return undefined;
+      if(Number(r.pausePendingUntil)>Date.now()||r.actif||(r.starting&&Date.now()<Number(r.startingUntil||0))||(r.cleanup&&Date.now()<Number(r.cleanupUntil||0))||gzSharedPlugOccupant(root,p,idx))return undefined;
       const now=Date.now();const state={actif:true,starting:false,startingUntil:0,client:nom,
         finTs:now+min*60000,tempsTotal:min*60,dureeMin:min,paused:false,pauseRemainingSec:0,
         montantSession:prix,montantJourSession:prix,paiementsSession:{[pay]:prix},
@@ -3217,8 +3206,10 @@ const activeAutoY=activeForPoste;activeForPoste=function(p,i){return YOUSSEFRela
 </script><script src="./actions-v03.js?v=youssef-boutons-1.6"></script><script src="pending-pause.js"></script>
 <script src="./youssef-v12-ui.js?v=youssef-sync-1.8"></script>
 <script src="./youssef-feedback.js?v=20261106-audio1?v=2.0"></script>
+<script src="./click-feedback.js?v=20261107-1"></script>
 </body>
 </html>
+
 
 
 
