@@ -33,6 +33,7 @@ async function command(p,action,seconds=0,operationId){
   pending.set(n,c);
   if(before.result?.id===c.id){if(!before.result.ok)throw Error(before.result.message||'Commande refusée');return before;}
   if(action==='start'&&(Number(before.nativeSeconds)>0||(before.mode==='actif'&&Number(before.remaining)>0))){const error=Error('Minuteur déjà présent sur cette prise : utilise +Temps ou vérifie la séance existante avant de démarrer. Aucune nouvelle activation envoyée.');error.notSent=true;throw error;}
+  if(action==='start'&&['pause','coupure'].includes(before.mode)&&Number(before.remaining)>0){const error=Error('Ancien temps conservé dans le relais : '+Math.ceil(Number(before.remaining)/60)+' min. Le Patron doit libérer cet ancien temps depuis la carte du poste avant une nouvelle séance.');error.notSent=true;throw error;}
   const old=waiting.data;if(old?.expiresAt>now()&&before?.result?.id!==old.id)throw Error('Une autre commande attend confirmation.');
   await request('pilotage_v1/commands/'+n,'PUT',c);
   for(let i=0;i<100;i++){
@@ -83,6 +84,25 @@ if(q.action==='finishConfirmed'){const st=s[poste(p)];if(st?.online&&st.power===
 if(!['pauseConfirmed','resumeConfirmed','reduceTime'].includes(q.action))throw Error('Action non prise en charge : '+String(q.action));
 const opid=q.operationId||id();let prior=raw.operation_results?.[opid];if(!prior&&q.operationId)try{prior=(await request(ROOM+'/operation_results/'+opid)).data;}catch(_){}if(prior)return {...prior,success:true,duplicate:true,schedulerConfirmed:true};const tx=await transaction(room=>{if(room.operation_results?.[opid])return room;const b=room.active_by_poste?.[k];if(!b?.actif||b.sessionId!==a.sessionId)throw Error('Séance modifiée ailleurs');if(q.expectedUpdatedAt!=null&&Number(q.expectedUpdatedAt)!==Number(b.updatedAt||0))throw Error('Séance modifiée : rouvre le bouton − Temps.');if(q.action==='pauseConfirmed'){if(b.paused){const st=s[poste(p)];if(!st?.online||now()-st.seenAt>30000||st.power!==false)throw Error('Pause déjà enregistrée, extinction non confirmée.');return room;}b.paused=true;b.pauseRemainingSec=remaining(a);b.finTs=0;b.pausePowerOffConfirmed=true;}else if(q.action==='resumeConfirmed'){if(!b.paused)throw Error('Aucune pause à reprendre');b.finTs=Date.now()+b.pauseRemainingSec*1000;b.paused=false;b.pauseRemainingSec=0;}else{if(!Number.isInteger(q.minutes)||q.minutes<1||q.minutes>1440)throw Error('Durée invalide');removed=Math.min(remaining(a),q.minutes*60);if(b.paused)b.pauseRemainingSec=Math.max(0,b.pauseRemainingSec-removed);else b.finTs=Math.max(Date.now(),b.finTs-removed*1000);if(remaining(b)<=0){b.actif=false;b.paused=false;b.finTs=0;b.pauseRemainingSec=0;}}b.updatedAt=Date.now();room.operation_results=room.operation_results||{};room.operation_results[opid]={poste:k,action:q.action,removedSeconds:removed,powerOffConfirmed:q.action==='pauseConfirmed',powerOnConfirmed:q.action==='resumeConfirmed'};const ids=Object.keys(room.operation_results);for(const oldid of ids.slice(0,Math.max(0,ids.length-100)))delete room.operation_results[oldid];return room;},{reduceSeconds:q.action==='reduceTime'?q.minutes*60:0,operationId:opid});return {success:true,state:tx.snapshot.val().active_by_poste[k],powerOffConfirmed:q.action==='pauseConfirmed',powerOnConfirmed:q.action==='resumeConfirmed',removedSeconds:removed,schedulerConfirmed:true};}
 async function queuePause(q){let key;const tx=await transaction(root=>{const p=(root.postes||[]).find(p=>p?.num===q.posteNum);if(!p)throw Error('Poste introuvable');key=encodeURIComponent(p.num);const a=activeRow(root,p);if(!a.actif||a.sessionId!==q.sessionId)throw Error('La séance a changé');if(a.paused&&a.pausePowerOffConfirmed)return root;const credit=remaining(a);a.paused=true;a.pauseRemainingSec=credit;if(!a.pauseRemainingSec)a.pauseRemainingSec=Math.max(0,Math.ceil((a.finTs-now())/1000));a.finTs=0;a.pausePowerOffConfirmed=true;delete a.pendingPauseId;delete a.pausePending;setActive(root,p,a);return root;});const state=tx.snapshot.val().active_by_poste[key];return {success:true,state,pending:false,powerOffConfirmed:true,schedulerConfirmed:true};}
+
+async function clearRetainedTimer(p){
+ if(uid()!==OWNER)throw Error('Libération réservée au Patron.');
+ const key=await acquire();
+ try{
+  const root=(await request(ROOM)).data||{};
+  const posts=root.postes||[];
+  const configured=posts.find(x=>x?.num===p.num);
+  if(!configured)throw Error('Poste introuvable.');
+  const samePlug=posts.filter(x=>x&&(x.num===p.num||(configured.devid&&x.devid===configured.devid)));
+  for(const x of samePlug){const i=posts.indexOf(x),a=root.active_by_poste?.[encodeURIComponent(x.num)]||root.active_postes?.[i]||{};
+   if(a.actif||a.starting||a.pendingPauseId)throw Error('Séance en cours ou en attente sur '+x.num+' : utiliser les boutons de cette séance.');
+  }
+  const state=await command(configured,'off');
+  if(state.power!==false||Number(state.nativeSeconds)!==0||Number(state.remaining)!==0||state.mode!=='libre')throw Error('Libération du temps conservé non confirmée.');
+  return state;
+ }finally{await release(key);}
+}
+
 async function safeOff(p){const room=(await request(ROOM)).data||{},a=room.active_by_poste?.[encodeURIComponent(p.num)]||{};if((a.actif&&!a.paused)||a.starting)throw Error('Séance en cours : utiliser Pause ou OFF TV.');const st=(await states())[poste(p)];if(st?.online&&st.power===false&&st.nativeSeconds===0&&now()-st.seenAt<30000)return true;await command(p,'off');return true;}
 async function importTariffs(){return;}
 async function importPostLabels(){return;}
@@ -133,8 +153,9 @@ function acceptSnapshot(root){return confirmedRoot&&(Number(root?.businessRevisi
 function isPatronEvent(e){return !!e&&(String(e.actorRole||'').toLowerCase()==='patron'||String(e.gerant||'').toLowerCase()==='patron'||e.visibilite==='patron'||e.uid===OWNER||e.actorUid===OWNER||/par le patron/i.test(String(e.main||'')));}
 function dayKey(d=new Date()){return new Date(d.getTime()-8*60*60*1000).toISOString().slice(0,10);}
 function todayRevenue(room,d=new Date()){return Math.max(0,Number(room.daily?.[dayKey(d)]?.recettes)||0);}
-w.YOUSSEFRelay={dayStart,nextEight,managerSnapshot,restRoom,saveTime,restoreTime,validBanks,syncPhysicalRoot,leafPatch,entries,displayName,physicalSummary,renderPhysical,refreshPhysical,install,request,acceptSnapshot,isPatronEvent,dayKey,todayRevenue,currentUid:uid,applyPause,applyAuto,importTariffs,ready,command,plan,transaction,roomRef,child,initialize,safeOff,poste,remaining,owner:OWNER,room:ROOM};
+w.YOUSSEFRelay={clearRetainedTimer,dayStart,nextEight,managerSnapshot,restRoom,saveTime,restoreTime,validBanks,syncPhysicalRoot,leafPatch,entries,displayName,physicalSummary,renderPhysical,refreshPhysical,install,request,acceptSnapshot,isPatronEvent,dayKey,todayRevenue,currentUid:uid,applyPause,applyAuto,importTariffs,ready,command,plan,transaction,roomRef,child,initialize,safeOff,poste,remaining,owner:OWNER,room:ROOM};
 })(window);
+
 
 
 
