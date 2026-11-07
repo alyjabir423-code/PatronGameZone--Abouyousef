@@ -55,7 +55,8 @@ function setup(){
  const style=document.createElement('style');style.textContent='button,[role=button]{touch-action:manipulation}button:active{filter:brightness(1.2);transform:scale(.98)}';document.head.append(style);
 }
 
-document.addEventListener('click',e=>{const b=e.target.closest?.('button');if(!b||b.disabled)return;if(b.id==='gz-male-voice-button'){e.preventDefault();e.stopImmediatePropagation();panel();}else if(b.id==='gz-notify-btn'){e.preventDefault();e.stopImmediatePropagation();play('test');void enableNotifications();}},true);
+document.addEventListener('input',e=>{const modal=e.target.closest?.('.mo');modal?.querySelectorAll('.youssef-command-error').forEach(x=>x.remove());},true);
+document.addEventListener('click',e=>{const b=e.target.closest?.('button');if(!b||b.disabled)return;b.closest('.mo')?.querySelectorAll('.youssef-command-error').forEach(x=>x.remove());if(b.id==='gz-male-voice-button'){e.preventDefault();e.stopImmediatePropagation();panel();}else if(b.id==='gz-notify-btn'){e.preventDefault();e.stopImmediatePropagation();play('test');void enableNotifications();}},true);
 
 async function notify(title,body,tag){if(!('Notification'in w)||Notification.permission!=='granted')return;try{const reg=await navigator.serviceWorker.getRegistration();if(reg)await reg.showNotification(title,{body,tag});}catch(_){}}
 const alertMemory=new Set();function once(key){if(alertMemory.has(key))return false;try{if(sessionStorage.getItem(key))return false;sessionStorage.setItem(key,'1');}catch(_){}alertMemory.add(key);return true;}
@@ -68,5 +69,6 @@ function checkAlerts(){if(typeof DB==='undefined'||!DB._cache)return;const root=
 function incidents(){if(typeof DB==='undefined'||!DB._cache)return;const items=Object.entries(DB._cache.operation_incidents||{}).sort((a,b)=>Number(b[1]?.at)-Number(a[1]?.at));let box=document.getElementById('youssef-incidents');if(!items.length){box?.remove();return;}if(!box){box=document.createElement('div');box.id='youssef-incidents';document.getElementById('gz-build-version')?.after(box);}const recent=items.filter(([,a])=>Date.now()-Number(a.at||0)<300000),sig=JSON.stringify([items,recent.length]);if(box.dataset.signature===sig)return;box.dataset.signature=sig;box.style.cssText='padding:10px;color:#fff;font:13px system-ui;background:'+(recent.length?'#652438':'#30273b');box.replaceChildren();const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent=recent.length?'⚠ '+recent.length+' commande(s) récente(s) à contrôler':'🗂 '+items.length+' ancien(s) signalement(s) — historique à consulter';details.append(summary);const info=document.createElement('p');info.textContent='Ces signalements sont conservés. Vérifie le poste et la recette avant de répéter une vente. Une confirmation ultérieure de la prise ne vérifie pas la recette.';details.append(info);for(const [id,a]of items){const row=document.createElement('p');row.textContent=new Date(Number(a.at)||0).toLocaleString('fr-FR')+' · Poste(s) '+(a.postes||[]).join(', ')+' · '+(a.message||'Commande non confirmée');details.append(row);}box.append(details);}
 if(document.readyState==='loading')w.addEventListener('load',setup);else setup();setInterval(()=>{checkAlerts();incidents();},1000);
 })(window);
+
 
 
