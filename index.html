@@ -365,7 +365,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
 #gz-notify-btn{border-color:#a67d3e!important;background:#3e311d!important;color:#fde047!important}
 
 </style>
-<script src="./youssef-relay.js?v=20261107-recovery25"></script></head>
+<script src="./youssef-relay.js?v=2.8-sync-annulation"></script></head>
 <body>
 
 <div id="fb-loading" style="position:fixed;inset:0;background:#0d0d1a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:900;gap:10px">
@@ -1215,7 +1215,7 @@ function renderControl(){
       <div class="ctl-client">${a.actif?esc(a.client||'Client'):'Disponible'}</div>
       ${ownerBonusNotice(a)}
       <div style="font-size:10px;color:var(--muted);margin:3px 0 8px">${relayId?'🔌 Prise liée':'⚠️ Prise à configurer'}</div>
-      <div class="ctl-actions">${!relayId?'':expired?'<span style="font-size:11px;color:#fca5a5">⏳ Temps terminé — libération automatique</span>':!a.actif?`<button class="ctl-btn ctl-start" style="background:#7c3aed;border-color:#8b5cf6;color:#fff" onclick="ownerOpenStart(${i})">DÉMARRER</button><button class="ctl-btn ctl-off" onclick="youssefClearRetained(${i})">LIBÉRER ANCIEN TEMPS</button>`:activeButtons}</div>
+      <div class="ctl-actions">${!relayId?'':expired?'<span style="font-size:11px;color:#fca5a5">⏳ Temps terminé — libération automatique</span>':!a.actif?`<button class="ctl-btn ctl-start" style="background:#7c3aed;border-color:#8b5cf6;color:#fff" onclick="ownerOpenStart(${i})">DÉMARRER</button>`:activeButtons}</div>
     </div>`;
   }).join('')+ownerRenderBonusCard(postes);
   const c=document.getElementById('ctl-active-count');if(c)c.textContent=actifs+' actif'+(actifs>1?'s':'');
@@ -3192,7 +3192,7 @@ async function ownerConfirmReduce(){
 ownerPowerOff=async function(i){const p=(DB.get('postes')||[])[i],a=p&&activeForPoste(p,i);if(!a?.actif)return;const entered=prompt('Motif obligatoire pour OFF TV (recette conservée) :');if(entered===null)return;const reason=entered.trim();if(!reason||reason.length>500){showToast('Motif obligatoire : 1 à 500 caractères.');return;}if(!confirm('OFF TV : terminer la séance de '+p.num+' ? La recette sera conservée.'))return;try{const tx=await fbRoot.transaction(r=>{const st=rootReadActive(r,p,i);if(!st?.actif||st.sessionId!==a.sessionId)return;rootWriteActive(r,p,i,blankRemoteActive(st));r.closed_sessions=r.closed_sessions||{};r.closed_sessions[a.sessionId]={status:'terminee',ts:Date.now(),poste:p.num};return r;});if(tx.committed){DB._cache=tx.snapshot.val();ownerPersistActivity(p.num+' — OFF TV','Temps terminé, recette conservée · Motif : '+reason,'',{poste:p.num,sessionId:a.sessionId,typeActivite:'terminee',motif:reason});renderControl();}}catch(e){showToast(e.message);}};
 const originalSavePosteY=savePoste;savePoste=async function(){const num=document.getElementById('p-num')?.value;try{if(num)YOUSSEFRelay.poste({num});return await originalSavePosteY();}catch(e){showToast(e.message);}};
 
- document.title='GameZone Abou Youssef — Patron';const y=document.getElementById('gz-build-version');if(y)y.textContent='YOUSSEF · 7 prises · Relais Firebase 2.0';</script><script>
+ document.title='GameZone Abou Youssef — Patron';const y=document.getElementById('gz-build-version');if(y)y.textContent='YOUSSEF · 7 prises · Relais Firebase 2.8';</script><script>
 // Les contrôles physiques précèdent la validation de la vente dans transaction().
 ownerTuyaCommand=async function(p,on){try{return on?await YOUSSEFRelay.ready(p):await YOUSSEFRelay.safeOff(p);}catch(e){gzTuyaError=e.message;return false;}};
 ownerReliableOff=async function(p){try{return await YOUSSEFRelay.safeOff(p);}catch(e){gzTuyaError=e.message;return false;}};
@@ -3208,17 +3208,11 @@ const activeAutoY=activeForPoste;activeForPoste=function(p,i){return YOUSSEFRela
 <script src="./youssef-feedback.js?v=20261107-voice24"></script>
 <script src="./click-feedback.js?v=20261107-1"></script>
 
-<script>
-async function youssefClearRetained(index){
- const p=(DB.get('postes')||[])[index];if(!p)return;
- if(!confirm(p.num+' : cette action éteint la prise et efface l’ancien temps conservé dans le relais. Aucun montant de recette ne sera modifié. Continuer seulement si aucune séance client ne doit être conservée.'))return;
- try{await YOUSSEFRelay.clearRetainedTimer(p);document.querySelectorAll('.youssef-command-error').forEach(x=>x.remove());showToast('✅ '+p.num+' : ancien temps libéré, nouvelle activation possible.');await YOUSSEFRelay.refreshPhysical();renderControl();}
- catch(e){showToast('⚠️ '+e.message);}
-}
-</script>
+
 
 </body>
 </html>
+
 
 
 
