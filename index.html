@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<script src="./firebase-quota-sync.js?v=quota-20261110-1"></script>
+<script src="./firebase-quota-sync.js?v=quota-r1-20261111"></script>
 <script>
 const GZ_STORAGE_PREFIX='gamezone:abou-youssef:patron:';
 function gzScopedStorage(raw){return {getItem:k=>raw.getItem(GZ_STORAGE_PREFIX+k),setItem:(k,v)=>raw.setItem(GZ_STORAGE_PREFIX+k,String(v)),removeItem:k=>raw.removeItem(GZ_STORAGE_PREFIX+k),clear:()=>{for(const k of Object.keys(raw))if(k.startsWith(GZ_STORAGE_PREFIX))raw.removeItem(k);}};}
@@ -366,7 +366,7 @@ button:focus-visible,.ni:focus-visible{outline:2px solid var(--gz-jaune);outline
 #gz-notify-btn{border-color:#a67d3e!important;background:#3e311d!important;color:#fde047!important}
 
 </style>
-<script src="./youssef-relay.js?v=quota-20261110-1"></script><script id="gz-session-display-20261110">
+<script src="./youssef-relay.js?v=quota-r1-20261111"></script><script id="gz-session-display-20261110">
 (function (w) {
   'use strict';
   const number = value => {
@@ -3235,8 +3235,9 @@ const activeAutoY=activeForPoste;activeForPoste=function(p,i){return YOUSSEFRela
 
 
 
-<script>const quotaVersion=document.getElementById('gz-build-version');if(quotaVersion)quotaVersion.textContent+=' · QUOTA Q1';</script></body>
+<script>const quotaVersion=document.getElementById('gz-build-version');if(quotaVersion)quotaVersion.textContent+=' · QUOTA Q1';</script><script>const r1Version=document.getElementById('gz-build-version');if(r1Version)r1Version.textContent+=' · QUOTA Q1 · CORRECTIF TEMPS R1';</script></body>
 </html>
+
 
 
 
